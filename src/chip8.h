@@ -49,7 +49,14 @@ struct Processor {
   uint8_t st = 0;                  // sound timer
 };
 
-class Emulator {
+struct Machine {
+  display_t display;
+  input_t input;
+  memory_t memory;
+  Processor processor;
+};
+
+class Emulator : public Machine {
 public:
   void Cycle();
   bool Load(const std::vector<uint8_t>& data);
@@ -59,10 +66,51 @@ public:
   void SetKey(uint8_t key, bool pressed);
 
 private:
-  display_t display_;
-  input_t input_;
-  memory_t memory_;
-  Processor processor_;
+  void op_00E0();
+  void op_00EE();
+  void op_1nnn();
+  void op_2nnn();
+  void op_3xkk();
+  void op_4xkk();
+  void op_5xy0();
+  void op_6xkk();
+  void op_7xkk();
+  void op_8xy0();
+  void op_8xy1();
+  void op_8xy2();
+  void op_8xy3();
+  void op_8xy4();
+  void op_8xy5();
+  void op_8xy6();
+  void op_8xy7();
+  void op_8xyE();
+  void op_9xy0();
+  void op_Annn();
+  void op_Bnnn();
+  void op_Cxkk();
+  void op_Dxyn();
+  void op_Ex9E();
+  void op_ExA1();
+  void op_Fx07();
+  void op_Fx0A();
+  void op_Fx15();
+  void op_Fx18();
+  void op_Fx1E();
+  void op_Fx29();
+  void op_Fx33();
+  void op_Fx55();
+  void op_Fx65();
+  void op_unknown();
+
+  inline uint16_t get_addr() const;
+  inline uint8_t get_byte() const;
+  inline uint8_t get_nibble() const;
+  inline void increment_pc();
+  inline uint8_t& vf();
+  inline uint8_t& vx();
+  inline uint8_t& vy();
+
+  uint16_t instruction_;
 };
 
 }  // namespace chip8
