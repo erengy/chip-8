@@ -90,9 +90,10 @@ void Emulator::Cycle() {
     --processor.dt;
   }
   if (processor.st > 0) {
-    if (processor.st == 1)
-      std::cout << '\a';  // TODO: Beep with SDL
+    speaker = true;
     --processor.st;
+  } else {
+    speaker = false;
   }
 }
 

@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -66,6 +67,9 @@ void Engine::OnKeyEvent(SDL_KeyboardEvent key_event) {
 
 void Engine::OnLoop() {
   emulator.Cycle();
+
+  if (emulator.speaker)
+    std::cout << '\a';
 }
 
 void Engine::OnRender() {
