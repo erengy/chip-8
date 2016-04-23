@@ -66,11 +66,11 @@ void Emulator::Cycle() {
 
   switch (instruction & 0xF000) {
     case 0x0000:
-      switch (instruction) {
-        case 0x00E0:  // CLS
+      switch (get_kk()) {
+        case 0xE0:  // CLS
           display_.fill(false);
           break;
-        case 0x00EE:  // RET
+        case 0xEE:  // RET
           if (processor_.sp > 0) {
             processor_.pc = processor_.stack[--processor_.sp];
           } else {
@@ -79,9 +79,11 @@ void Emulator::Cycle() {
           break;
       }
       break;
+
     case 0x1000:  // JP addr
       processor_.pc = get_nnn();
       break;
+
     case 0x2000:  // CALL addr
       if (processor_.sp < processor_.stack.size()) {
         processor_.stack[processor_.sp++] = processor_.pc;
@@ -90,24 +92,30 @@ void Emulator::Cycle() {
         // TODO: Handle stack overflow
       }
       break;
+
     case 0x3000:  // SE Vx, byte
       if (vx() == get_kk())
         increment_pc();
       break;
+
     case 0x4000:  // SNE Vx, byte
       if (vx() != get_kk())
         increment_pc();
       break;
+
     case 0x5000:  // SE Vx, Vy
       if (vx() == vy())
         increment_pc();
       break;
+
     case 0x6000:  // LD Vx, byte
       vx() = get_kk();
       break;
+
     case 0x7000:  // ADD Vx, byte
       vx() += get_kk();
       break;
+
     case 0x8000:
       switch (get_n()) {
         case 0x0:  // LD Vx, Vy
@@ -145,19 +153,24 @@ void Emulator::Cycle() {
           break;
       }
       break;
+
     case 0x9000:  // SNE Vx, Vy
       if (vx() != vy())
         increment_pc();
       break;
+
     case 0xA000:  // LD I, addr
       processor_.i = get_nnn();
       break;
+
     case 0xB000:  // JP V0, addr
       processor_.pc = get_nnn() + processor_.v[0];
       break;
+
     case 0xC000:  // RND Vx, byte
       vx() = get_random() & get_kk();
       break;
+
     case 0xD000: {  // DRW Vx, Vy, nibble
       bool collision = false;
       for (uint8_t y = 0; y < get_n(); ++y) {
@@ -175,6 +188,7 @@ void Emulator::Cycle() {
       vf() = collision ? 1 : 0;
       break;
     }
+
     case 0xE000:
       switch (get_kk()) {
         case 0x9E:  // SKP Vx
@@ -187,6 +201,7 @@ void Emulator::Cycle() {
           break;
       }
       break;
+
     case 0xF000:
       switch (get_kk()) {
         case 0x07:  // LD Vx, DT
@@ -280,7 +295,7 @@ void Emulator::Reset() {
 }
 
 bool Emulator::GetPixel(uint8_t x, uint8_t y) const {
-  size_t pixel = x + (kDisplayWidth * y);
+  const size_t pixel = x + (kDisplayWidth * y);
   if (pixel < display_.size())
     return display_[pixel];
   return false;

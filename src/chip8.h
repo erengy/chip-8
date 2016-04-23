@@ -41,12 +41,12 @@ typedef std::array<uint8_t, 4096> memory_t;
 
 struct Processor {
   std::array<uint8_t, 16> v;       // 8-bit registers
-  uint16_t i;                      // 16-bit register
+  uint16_t i = 0;                  // 16-bit register
   uint16_t pc = kProgramOffset;    // program counter
-  uint8_t sp;                      // stack pointer
+  uint8_t sp = 0;                  // stack pointer
   std::array<uint16_t, 16> stack;
-  uint8_t dt;                      // delay timer
-  uint8_t st;                      // sound timer
+  uint8_t dt = 0;                  // delay timer
+  uint8_t st = 0;                  // sound timer
 };
 
 class Emulator {

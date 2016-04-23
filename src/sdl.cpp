@@ -49,7 +49,7 @@ const SDL_Renderer* Engine::renderer() const {
 }
 
 bool Engine::Initialize() {
-  Uint32 flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+  const Uint32 flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
   return SDL_Init(flags) == 0;
 }
 
@@ -63,7 +63,7 @@ bool Engine::CreateWindow(const std::string& title, int width, int height) {
 
 bool Engine::CreateRenderer() {
   // TODO: Disable v-sync after implementing frame-rate limit
-  Uint32 flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+  const Uint32 flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
   renderer_ = SDL_CreateRenderer(window_, -1, flags);
   return renderer_ != nullptr;
 }
