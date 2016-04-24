@@ -61,6 +61,7 @@ struct Machine {
 class Emulator : public Machine {
 public:
   void Cycle();
+  void UpdateTimers();
   bool Load(const std::vector<uint8_t>& program);
   void Reset();
   void Restart();

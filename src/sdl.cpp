@@ -62,8 +62,7 @@ bool Engine::CreateWindow(const std::string& title, int width, int height) {
 }
 
 bool Engine::CreateRenderer() {
-  // TODO: Disable v-sync after implementing frame-rate limit
-  const Uint32 flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+  const Uint32 flags = SDL_RENDERER_ACCELERATED;
   renderer_ = SDL_CreateRenderer(window_, -1, flags);
   return renderer_ != nullptr;
 }
@@ -86,14 +85,30 @@ void Engine::Loop() {
     }
 
     OnLoop();
-    Render();
+    OnRender();
+
+    SDL_Delay(1);
   }
 }
 
-void Engine::Render() {
-  SDL_RenderClear(renderer_);
-  OnRender();
-  SDL_RenderPresent(renderer_);
+////////////////////////////////////////////////////////////////////////////////
+
+Timer::Timer(Uint32 target)
+    : counter_(SDL_GetPerformanceCounter()),
+      frequency_(SDL_GetPerformanceFrequency()),
+      target_(target) {
+}
+
+bool Timer::Check() {
+  const auto now = SDL_GetPerformanceCounter();
+  const auto delta = ((now - counter_) * 1000.0f) / frequency_;
+
+  if (delta >= 1000.0f / target_) {
+    counter_ = now;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 }  // namespace sdl

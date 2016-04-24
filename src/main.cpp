@@ -66,15 +66,26 @@ void Engine::OnKeyEvent(SDL_KeyboardEvent key_event) {
 }
 
 void Engine::OnLoop() {
+  static sdl::Timer timer(500);
+
+  if (!timer.Check())
+    return;
+
   emulator.Cycle();
+  emulator.UpdateTimers();
 
   if (emulator.speaker)
     std::cout << '\a';
 }
 
 void Engine::OnRender() {
+  static sdl::Timer timer(60);
+
+  if (!timer.Check())
+    return;
+
   SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0xFF);
-  SDL_RenderFillRect(renderer_, nullptr);
+  SDL_RenderClear(renderer_);
 
   SDL_Rect rect = {0, 0, kDisplayMultiplier, kDisplayMultiplier};
 
@@ -88,6 +99,8 @@ void Engine::OnRender() {
       }
     }
   }
+
+  SDL_RenderPresent(renderer_);
 }
 
 static bool ReadFile(const std::string& path, std::vector<uint8_t>& data) {

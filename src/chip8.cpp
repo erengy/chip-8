@@ -85,16 +85,14 @@ void Emulator::Cycle() {
   }
   if (unknown_instruction)
     op_unknown();
+}
 
-  if (processor.dt > 0) {
+void Emulator::UpdateTimers() {
+  if (processor.dt > 0)
     --processor.dt;
-  }
-  if (processor.st > 0) {
-    speaker = true;
-    --processor.st;
-  } else {
-    speaker = false;
-  }
+
+  if (processor.st > 0)
+    speaker = --processor.st > 0;
 }
 
 bool Emulator::Load(const std::vector<uint8_t>& program) {

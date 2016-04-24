@@ -43,7 +43,6 @@ public:
   bool CreateRenderer();
 
   void Loop();
-  void Render();
 
   virtual void OnKeyEvent(SDL_KeyboardEvent key_event) {}
   virtual void OnLoop() {}
@@ -53,6 +52,18 @@ protected:
   SDL_Window* window_ = nullptr;
   SDL_Renderer* renderer_ = nullptr;
   bool running_ = false;
+};
+
+class Timer {
+public:
+  Timer(Uint32 target);
+
+  bool Check();
+
+private:
+  Uint64 counter_ = 0;
+  Uint64 frequency_ = 0;
+  Uint32 target_ = 0;
 };
 
 }  // namespace sdl
