@@ -305,8 +305,13 @@ void Emulator::op_Fx07() {  // LD Vx, DT
 }
 
 void Emulator::op_Fx0A() {  // LD Vx, K
-  vx() = 0x0;  // TODO: Store pressed key in Vx
-  op_unknown();
+  for (size_t key = 0; key < input.size(); ++key) {
+    if (input[key]) {
+      vx() = static_cast<uint8_t>(key);
+      return;
+    }
+  }
+  processor.pc -= sizeof(instruction_);  // 2
 }
 
 void Emulator::op_Fx15() {  // LD DT, Vx
