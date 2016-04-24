@@ -61,8 +61,9 @@ struct Machine {
 class Emulator : public Machine {
 public:
   void Cycle();
-  bool Load(const std::vector<uint8_t>& data);
+  bool Load(const std::vector<uint8_t>& program);
   void Reset();
+  void Restart();
 
   bool GetPixel(uint8_t x, uint8_t y) const;
   void SetKey(uint8_t key, bool pressed);
@@ -112,7 +113,8 @@ private:
   inline uint8_t& vx();
   inline uint8_t& vy();
 
-  uint16_t instruction_;
+  uint16_t instruction_ = 0x0000;
+  std::vector<uint8_t> program_;
 };
 
 }  // namespace chip8

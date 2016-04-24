@@ -50,7 +50,7 @@ void Engine::OnKeyEvent(SDL_KeyboardEvent key_event) {
       running_ = false;
       return;
     case SDLK_F5:
-      // TODO: Restart
+      emulator.Restart();
       return;
   }
 

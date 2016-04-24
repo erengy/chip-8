@@ -97,11 +97,13 @@ void Emulator::Cycle() {
   }
 }
 
-bool Emulator::Load(const std::vector<uint8_t>& data) {
-  if (data.size() > memory.size() - kProgramOffset)
+bool Emulator::Load(const std::vector<uint8_t>& program) {
+  if (program.size() > memory.size() - kProgramOffset)
     return false;
 
-  std::copy(data.begin(), data.end(), memory.begin() + kProgramOffset);
+  std::copy(program.begin(), program.end(), std::back_inserter(program_));
+  std::copy(program.begin(), program.end(), memory.begin() + kProgramOffset);
+
   return true;
 }
 
@@ -137,6 +139,15 @@ void Emulator::Reset() {
     0xF0, 0x80, 0xF0, 0x80, 0x80,  // F
   };
   std::copy(sprites.begin(), sprites.end(), memory.begin());
+
+  instruction_ = 0x0000;
+  program_.clear();
+}
+
+void Emulator::Restart() {
+  const auto program = program_;
+  Reset();
+  Load(program);
 }
 
 bool Emulator::GetPixel(uint8_t x, uint8_t y) const {
