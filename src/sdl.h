@@ -42,6 +42,10 @@ public:
   bool CreateWindow(const std::string& title, int width, int height);
   bool CreateRenderer();
 
+  bool OpenAudioDevice(const SDL_AudioSpec& audio_spec);
+  void PauseAudioDevice(int pause_on) const;
+  bool QueueAudio(const void* data, Uint32 len) const;
+
   void Loop();
 
   virtual void OnKeyEvent(SDL_KeyboardEvent key_event) {}
@@ -49,6 +53,7 @@ public:
   virtual void OnRender() {}
 
 protected:
+  SDL_AudioDeviceID audio_device_ = 0;
   SDL_Window* window_ = nullptr;
   SDL_Renderer* renderer_ = nullptr;
   bool running_ = false;

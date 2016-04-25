@@ -38,7 +38,6 @@ constexpr uint16_t kProgramOffset = 0x200;
 typedef std::array<bool, kDisplayWidth * kDisplayHeight> display_t;
 typedef std::array<bool, 16> input_t;
 typedef std::array<uint8_t, 4096> memory_t;
-typedef bool speaker_t;
 
 struct Processor {
   std::array<uint8_t, 16> v;       // 8-bit registers
@@ -55,7 +54,6 @@ struct Machine {
   input_t input;
   memory_t memory;
   Processor processor;
-  speaker_t speaker;
 };
 
 class Emulator : public Machine {

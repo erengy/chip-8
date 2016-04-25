@@ -32,14 +32,54 @@ SOFTWARE.
 
 constexpr uint8_t kDisplayMultiplier = 10;
 
+constexpr uint16_t kSamplesPerSecond = 44100;
+constexpr uint16_t kToneAmplitude = 8000;
+constexpr uint16_t kToneDuration = 50;
+constexpr uint16_t kToneFrequency = 1700;
+
 static chip8::Emulator emulator;
 
 class Engine : public sdl::Engine {
 public:
+  void Beep(uint16_t duration) const;
+  void EnableAudio();
+
   void OnKeyEvent(SDL_KeyboardEvent key_event);
   void OnLoop();
   void OnRender();
+
+private:
+  bool audio_enabled_ = false;
 };
+
+void Engine::Beep(uint16_t duration) const {
+  if (!audio_enabled_)
+    return;
+
+  const auto sample_count = kSamplesPerSecond * duration / 1000;
+  std::vector<uint16_t> data(sample_count, 0);
+
+  constexpr uint16_t a = kToneAmplitude;
+  constexpr uint16_t p = kSamplesPerSecond / kToneFrequency;
+  for (int t = 0; t < data.size(); ++t) {
+    data[t] = ((4 * a) / p) * (std::abs((t % p) - (p / 2)) - (p / 4));
+  }
+
+  QueueAudio(&data.at(0), data.size());
+}
+
+void Engine::EnableAudio() {
+  SDL_AudioSpec audio_spec = {0};
+  audio_spec.freq = kSamplesPerSecond;
+  audio_spec.format = AUDIO_S16LSB;
+  audio_spec.channels = 1;
+  audio_spec.samples = 2048;
+
+  audio_enabled_ = OpenAudioDevice(audio_spec);
+
+  if (audio_enabled_)
+    PauseAudioDevice(0);
+}
 
 void Engine::OnKeyEvent(SDL_KeyboardEvent key_event) {
   if (key_event.repeat != 0)
@@ -74,8 +114,10 @@ void Engine::OnLoop() {
   emulator.Cycle();
   emulator.UpdateTimers();
 
-  if (emulator.speaker)
-    std::cout << '\a';
+  if (emulator.processor.st > 0) {
+    Beep(emulator.processor.st * kToneDuration);
+    emulator.processor.st = 0;
+  }
 }
 
 void Engine::OnRender() {
@@ -144,7 +186,7 @@ int main(int argc, char const *argv[]) {
       !engine.CreateRenderer()) {
     return 1;
   }
-
+  engine.EnableAudio();
   engine.Loop();
 
   return 0;

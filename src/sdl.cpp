@@ -27,6 +27,12 @@ SOFTWARE.
 namespace sdl {
 
 Engine::~Engine() {
+  if (audio_device_) {
+    SDL_ClearQueuedAudio(audio_device_);
+    SDL_CloseAudioDevice(audio_device_);
+    audio_device_ = 0;
+  }
+
   if (renderer_) {
     SDL_DestroyRenderer(renderer_);
     renderer_ = nullptr;
@@ -49,7 +55,7 @@ const SDL_Renderer* Engine::renderer() const {
 }
 
 bool Engine::Initialize() {
-  const Uint32 flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+  const Uint32 flags = SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS;
   return SDL_Init(flags) == 0;
 }
 
@@ -89,6 +95,19 @@ void Engine::Loop() {
 
     SDL_Delay(1);
   }
+}
+
+bool Engine::OpenAudioDevice(const SDL_AudioSpec& audio_spec) {
+  audio_device_ = SDL_OpenAudioDevice(nullptr, 0, &audio_spec, nullptr, 0);
+  return audio_device_ != 0;
+}
+
+void Engine::PauseAudioDevice(int pause_on) const {
+  SDL_PauseAudioDevice(audio_device_, pause_on);
+}
+
+bool Engine::QueueAudio(const void* data, Uint32 len) const {
+  return SDL_QueueAudio(audio_device_, data, len) == 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

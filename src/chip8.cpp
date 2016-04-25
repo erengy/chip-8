@@ -92,7 +92,7 @@ void Emulator::UpdateTimers() {
     --processor.dt;
 
   if (processor.st > 0)
-    speaker = --processor.st > 0;
+    --processor.st;
 }
 
 bool Emulator::Load(const std::vector<uint8_t>& program) {
