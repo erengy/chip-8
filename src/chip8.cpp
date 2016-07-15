@@ -37,54 +37,56 @@ void Emulator::Cycle() {
 
   increment_pc();
 
-  typedef std::tuple<uint16_t, uint16_t, std::function<void()>> instruction_t;
-  static const std::vector<instruction_t> instructions = {
-    {0x00E0, 0xFFFF, std::bind(&Emulator::op_00E0, this)},
-    {0x00EE, 0xFFFF, std::bind(&Emulator::op_00EE, this)},
-    {0x1000, 0xF000, std::bind(&Emulator::op_1nnn, this)},
-    {0x2000, 0xF000, std::bind(&Emulator::op_2nnn, this)},
-    {0x3000, 0xF000, std::bind(&Emulator::op_3xkk, this)},
-    {0x4000, 0xF000, std::bind(&Emulator::op_4xkk, this)},
-    {0x5000, 0xF00F, std::bind(&Emulator::op_5xy0, this)},
-    {0x6000, 0xF000, std::bind(&Emulator::op_6xkk, this)},
-    {0x7000, 0xF000, std::bind(&Emulator::op_7xkk, this)},
-    {0x8000, 0xF00F, std::bind(&Emulator::op_8xy0, this)},
-    {0x8001, 0xF00F, std::bind(&Emulator::op_8xy1, this)},
-    {0x8002, 0xF00F, std::bind(&Emulator::op_8xy2, this)},
-    {0x8003, 0xF00F, std::bind(&Emulator::op_8xy3, this)},
-    {0x8004, 0xF00F, std::bind(&Emulator::op_8xy4, this)},
-    {0x8005, 0xF00F, std::bind(&Emulator::op_8xy5, this)},
-    {0x8006, 0xF00F, std::bind(&Emulator::op_8xy6, this)},
-    {0x8007, 0xF00F, std::bind(&Emulator::op_8xy7, this)},
-    {0x800E, 0xF00F, std::bind(&Emulator::op_8xyE, this)},
-    {0x9000, 0xF00F, std::bind(&Emulator::op_9xy0, this)},
-    {0xA000, 0xF000, std::bind(&Emulator::op_Annn, this)},
-    {0xB000, 0xF000, std::bind(&Emulator::op_Bnnn, this)},
-    {0xC000, 0xF000, std::bind(&Emulator::op_Cxkk, this)},
-    {0xD000, 0xF000, std::bind(&Emulator::op_Dxyn, this)},
-    {0xE09E, 0xF0FF, std::bind(&Emulator::op_Ex9E, this)},
-    {0xE0A1, 0xF0FF, std::bind(&Emulator::op_ExA1, this)},
-    {0xF007, 0xF0FF, std::bind(&Emulator::op_Fx07, this)},
-    {0xF00A, 0xF0FF, std::bind(&Emulator::op_Fx0A, this)},
-    {0xF015, 0xF0FF, std::bind(&Emulator::op_Fx15, this)},
-    {0xF018, 0xF0FF, std::bind(&Emulator::op_Fx18, this)},
-    {0xF01E, 0xF0FF, std::bind(&Emulator::op_Fx1E, this)},
-    {0xF029, 0xF0FF, std::bind(&Emulator::op_Fx29, this)},
-    {0xF033, 0xF0FF, std::bind(&Emulator::op_Fx33, this)},
-    {0xF055, 0xF0FF, std::bind(&Emulator::op_Fx55, this)},
-    {0xF065, 0xF0FF, std::bind(&Emulator::op_Fx65, this)},
+  struct Operation {
+    uint16_t code;
+    uint16_t mask;
+    std::function<void()> function;
+  };
+  static const std::vector<Operation> operations = {
+    {0x00E0, 0xFFFF, std::bind(&Emulator::op_00E0, this)},  // CLS
+    {0x00EE, 0xFFFF, std::bind(&Emulator::op_00EE, this)},  // RET
+    {0x1000, 0xF000, std::bind(&Emulator::op_1nnn, this)},  // JP addr
+    {0x2000, 0xF000, std::bind(&Emulator::op_2nnn, this)},  // CALL addr
+    {0x3000, 0xF000, std::bind(&Emulator::op_3xkk, this)},  // SE Vx, byte
+    {0x4000, 0xF000, std::bind(&Emulator::op_4xkk, this)},  // SNE Vx, byte
+    {0x5000, 0xF00F, std::bind(&Emulator::op_5xy0, this)},  // SE Vx, Vy
+    {0x6000, 0xF000, std::bind(&Emulator::op_6xkk, this)},  // LD Vx, byte
+    {0x7000, 0xF000, std::bind(&Emulator::op_7xkk, this)},  // ADD Vx, byte
+    {0x8000, 0xF00F, std::bind(&Emulator::op_8xy0, this)},  // LD Vx, Vy
+    {0x8001, 0xF00F, std::bind(&Emulator::op_8xy1, this)},  // OR Vx, Vy
+    {0x8002, 0xF00F, std::bind(&Emulator::op_8xy2, this)},  // AND Vx, Vy
+    {0x8003, 0xF00F, std::bind(&Emulator::op_8xy3, this)},  // XOR Vx, Vy
+    {0x8004, 0xF00F, std::bind(&Emulator::op_8xy4, this)},  // ADD Vx, Vy
+    {0x8005, 0xF00F, std::bind(&Emulator::op_8xy5, this)},  // SUB Vx, Vy
+    {0x8006, 0xF00F, std::bind(&Emulator::op_8xy6, this)},  // SHR Vx {, Vy}
+    {0x8007, 0xF00F, std::bind(&Emulator::op_8xy7, this)},  // SUBN Vx, Vy
+    {0x800E, 0xF00F, std::bind(&Emulator::op_8xyE, this)},  // SHL Vx {, Vy}
+    {0x9000, 0xF00F, std::bind(&Emulator::op_9xy0, this)},  // SNE Vx, Vy
+    {0xA000, 0xF000, std::bind(&Emulator::op_Annn, this)},  // LD I, addr
+    {0xB000, 0xF000, std::bind(&Emulator::op_Bnnn, this)},  // JP V0, addr
+    {0xC000, 0xF000, std::bind(&Emulator::op_Cxkk, this)},  // RND Vx, byte
+    {0xD000, 0xF000, std::bind(&Emulator::op_Dxyn, this)},  // DRW Vx, Vy, nibble
+    {0xE09E, 0xF0FF, std::bind(&Emulator::op_Ex9E, this)},  // SKP Vx
+    {0xE0A1, 0xF0FF, std::bind(&Emulator::op_ExA1, this)},  // SKNP Vx
+    {0xF007, 0xF0FF, std::bind(&Emulator::op_Fx07, this)},  // LD Vx, DT
+    {0xF00A, 0xF0FF, std::bind(&Emulator::op_Fx0A, this)},  // LD Vx, K
+    {0xF015, 0xF0FF, std::bind(&Emulator::op_Fx15, this)},  // LD DT, Vx
+    {0xF018, 0xF0FF, std::bind(&Emulator::op_Fx18, this)},  // LD ST, Vx
+    {0xF01E, 0xF0FF, std::bind(&Emulator::op_Fx1E, this)},  // ADD I, Vx
+    {0xF029, 0xF0FF, std::bind(&Emulator::op_Fx29, this)},  // LD F, Vx
+    {0xF033, 0xF0FF, std::bind(&Emulator::op_Fx33, this)},  // LD B, Vx
+    {0xF055, 0xF0FF, std::bind(&Emulator::op_Fx55, this)},  // LD [I], Vx
+    {0xF065, 0xF0FF, std::bind(&Emulator::op_Fx65, this)},  // LD Vx, [I]
   };
 
-  bool unknown_instruction = true;
-  for (const auto& instruction : instructions) {
-    if ((instruction_ & std::get<1>(instruction)) == std::get<0>(instruction)) {
-      std::get<2>(instruction)();
-      unknown_instruction = false;
+  std::function<void()> op_function(std::bind(&Emulator::op_unknown, this));
+  for (const auto& op : operations) {
+    if ((instruction_ & op.mask) == op.code) {
+      op_function = op.function;
       break;
     }
   }
-  if (unknown_instruction)
-    op_unknown();
+  op_function();
 }
 
 void Emulator::UpdateTimers() {
